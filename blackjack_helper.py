@@ -1,61 +1,111 @@
-# DO NOT CHANGE OR REMOVE THIS COMMENT, and do not change this import otherwise all tests will fail.
-# Use randint to generate random cards. 
-from blackjack_helper import *
+from random import randint
 
 
+# Prints the given card's official name in the form "Drew a(n) ___".
+# If the input card is invalid, prints "BAD CARD"
+# 
+# Parameters:
+#   card_rank: The numeric representation of a card (1-13)
+#
+# Return:
+#   none
+def print_card_name(card_rank):
+  if card_rank == 1:
+    card_name = 'Ace'
+  elif card_rank == 11:
+    card_name = 'Jack'
+  elif card_rank == 12:
+    card_name = 'Queen'
+  elif card_rank == 13:
+    card_name = 'King'
+  else:
+    card_name = card_rank
 
-# multiplayer set up
-print("Welcome to Blackjack!")
-num_players = int(input("How many players? "))
+  if card_rank == 8 or card_rank == 1:
+    print('Drew an ' + str(card_name))
+  elif card_rank < 1 or card_rank > 13:
+    print('BAD CARD')
+  else:
+    print('Drew a ' + str(card_name))
 
-# create list to input a dictionary for each player that contains names
-# and hand values. followed by a for loop that iterates in the range of num_players
-players = []
-for i in range(num_players):
-    player_name = input(f"What is player {i+1}'s name? ")
-    players.append({'name': player_name, 'hand': 0, 'score': 3})
+# Draws a new random card, prints its name, and returns its value.
+# 
+# Parameters:
+#   none
+#
+# Return:
+#   an int representing the value of the card. All cards are worth
+#   the same as the card_rank except Jack, Queen, King, and Ace.
+def draw_card():
+  card_rank = randint(1, 13)
+  print_card_name(card_rank)
 
+  if card_rank == 11 or card_rank == 12 or card_rank == 13:
+    card_value = 10
+  elif card_rank == 1:
+    card_value = 11
+  else:
+    card_value = card_rank
 
+  return card_value
 
-user_answer = ''
-while user_answer != 'n':
-    # players' turn: for loop that allows each player in players to take their TURN
-    # making sure to update the 'hand' for each player in their dictionary
-    for player in players:
-        player['hand'] = draw_starting_hand(player['name'].upper())
-        should_hit = 'y'
-        while player['hand'] < 21:
-            should_hit = input(f"You have {player['hand']}. Hit (y/n)? ")
-            if should_hit == 'n':
-                break
-            elif should_hit != 'y':
-                print("Sorry, I didn't get that.")
-            else:
-                player['hand'] += draw_card()
-        print_end_turn_status(player['hand'])
+# Prints the given message formatted as a header. A header looks like:
+# -----------
+# message
+# -----------
+# 
+# Parameters:
+#   message: the string to print in the header
+#
+# Return:
+#   none
+def print_header(message):
+  print('-----------')
+  print(message)
+  print('-----------')
 
+# Prints turn header and draws a starting hand, which is two cards.
+# 
+# Parameters:
+#   name: The name of the player whose turn it is.
+#
+# Return:
+#   The hand total, which is the sum of the two newly drawn cards.
+def draw_starting_hand(name):
+  print_header(name + ' TURN')
+  return draw_card() + draw_card()
 
+# Prints the hand total and status at the end of a player's turn.
+# 
+# Parameters:
+#   hand_value: the sum of all of a player's cards at the end of their turn.
+#
+# Return:
+#   none
+def print_end_turn_status(hand_value):
+  print('Final hand: ' + str(hand_value) + '.')
 
+  if hand_value == 21:
+    print('BLACKJACK!')
+  elif hand_value > 21:
+    print('BUST.')
 
-    # DEALER'S TURN
-    dealer_hand = draw_starting_hand("DEALER")
-    while dealer_hand < 17:
-        print(f"Dealer has {dealer_hand}.")
-        dealer_hand += draw_card()
-    print_end_turn_status(dealer_hand)
-
-
-    # GAME RESULT
-    print_header('GAME RESULT')
-    for player in players:
-        print_end_game_status(player, dealer_hand)
-
-
-    for i in range(len(players)):
-      if players[i]['score'] == 0:
-        players.pop(i)
-    if len(players) == 0:
-      print('All players eliminated!')
-      user_answer = 'n'
-    else:    # ask users if they want to play another round
-      user_answer = input("Do you want to play another hand (y/n)? ")
+# Prints the end game banner and the winner based on the final hands.
+# 
+# Parameters:
+#   user_hand: the sum of all cards in the user's hand
+#   dealer_hand: the sum of all cards in the dealer's hand
+#
+# Return:
+#   none
+def print_end_game_status(player, dealer_hand):
+  if player['hand'] <= 21 and (player['hand'] > dealer_hand or dealer_hand > 21):
+    player['score'] += 1
+    print(f'{player['name']} wins! Score: {player['score']}')
+  elif player['hand'] > 21 or (player['hand'] <= 21 and dealer_hand > player['hand']):
+    player['score'] -= 1
+    print(f'{player['name']} loses! Score: {player['score']}')
+    if player['score'] == 0:
+      print(f'{player['name']} eliminated!')
+  else:
+    print(f'{player['name']} pushes. Score: {player['score']}')
